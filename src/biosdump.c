@@ -9,7 +9,6 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-
 //---------------------------------------------------------------------------
 uint32_t Spi32(uint32_t val)
 {
@@ -26,18 +25,12 @@ uint32_t Spi32(uint32_t val)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-	if(argc != 2)
-	{
-		fprintf(stderr, "usage: multiboot gbafile\n");
-		exit(1);
-	}
-
+	char *dumpfile = "biosdumper.gba";
 	wiringPiSPISetupMode(0, 100000, 3);
-
 
 	// -----------------------------------------------------
 	// get filesize
-	int fd = open(argv[1], O_RDONLY);
+	int fd = open(dumpfile, O_RDONLY);
 
 	if(fd == -1)
 	{
@@ -65,8 +58,8 @@ int main(int argc, char* argv[])
 
 
 	// -----------------------------------------------------
-	// read file
-	FILE* fp = fopen(argv[1], "rb");
+	// open dumper 
+	FILE* fp = fopen(dumpfile, "rb");
 
 	if(fp == NULL)
 	{
@@ -209,9 +202,39 @@ int main(int argc, char* argv[])
 	uint32_t crcGBA = Spi32(crcC & 0xFFFF) >> 16;
 
 	printf("Gba: %x, Cal: %x\n", crcGBA, crcC);
-	printf("Done.\n");
-
-
+	printf("Boot Done.\n");
 	free(fdata);
+
+	printf("Comm connect start...\n");
+
+	uint8_t rec[4];
+	FILE *fw = fopen("GBA.BIOS", "wb");
+	delay(100);
+
+	// wait magic number
+	while(1){
+		wiringPiSPIDataRW(0, rec, 4);
+		if(rec[0]==0xA5 && rec[1]==0x3C && rec[2]==0x81 && rec[3]==0x7E ){
+			printf("Connect success!\n");
+			break;
+		}
+		delay(20);
+	}
+
+	printf("Recieve start...\n");
+	
+	// recieve bios data 
+	for(int32_t j=0; j<0x1000; j++){
+		delay(20);
+		wiringPiSPIDataRW(0, rec, 4);
+
+		for(int32_t i=3; i>=0; i--){
+			fputc(rec[i], fw);
+		}
+		if(j%0x80==0) printf(".\n");
+	}
+	fclose(fw);
+
+	printf("recive finish!\n");
 	return 0;
 }

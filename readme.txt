@@ -1,3 +1,38 @@
+Raspberry Pi Advance GBA BIOS Dumper
+
+## Description
+GBA BIOS dumper for Raspberry Pi Advance expantion board (https://cubic-style.jp/rpa_exp/).
+
+## command log
+
+$ gcc biosdump.c -lwiringPi -o biosdump
+$ sudo ./biosdump
+
+Waiting for GBA...
+Sending header.
+Getting encryption and crc seeds.
+Seeds: ca, ec, ffffbbd1
+Sending...
+Waiting for checksum...
+Gba: 41da, Cal: 41da
+Boot Done.
+connect start...
+connect success!
+recieve start...
+.
+.
+.
+.
+recive finish!
+
+## Author
+CUBIC STYLE Sep 19, 2018
+
+
+
+
+original program:
+-----------------------------------------------------------------------------
 Raspberry Pi GBA Loader - Rewrite version
 
 ## Description
